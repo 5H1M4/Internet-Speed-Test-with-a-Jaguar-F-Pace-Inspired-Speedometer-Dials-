@@ -15,26 +15,23 @@ def run_speedtest(request):
         upload_speeds = []
         ping_values = []
         
-        # Collect data over 10 seconds
         while time.time() - start_time < 10:
-            download = st.download() / (1024 * 1024)  # Convert to Mbps
-            upload = st.upload() / (1024 * 1024)      # Convert to Mbps
-            ping = st.results.ping
+            download_speed = st.download() / (1024 * 1024)  # Convert to Mbps
+            upload_speed = st.upload() / (1024 * 1024)      # Convert to Mbps
+            ping_value = st.results.ping
             
-            download_speeds.append(round(download, 2))
-            upload_speeds.append(round(upload, 2))
-            ping_values.append(round(ping, 2))
+            download_speeds.append(round(download_speed, 2))
+            upload_speeds.append(round(upload_speed, 2))
+            ping_values.append(round(ping_value, 2))
             
             time.sleep(0.5)  # Pause for 0.5 seconds
         
         data = {
-            'download_speeds': download_speeds,
-            'upload_speeds': upload_speeds,
-            'ping_values': ping_values,
+            'download_speed': download_speeds[-1],
+            'upload_speed': upload_speeds[-1],
+            'ping': ping_values[-1],
             'max_download': max(download_speeds),
             'max_upload': max(upload_speeds),
-            'min_ping': min(ping_values),
+            'min_ping': min(ping_values)
         }
-        return JsonResponse(data)
-    else:
-        return JsonResponse({'error': 'Invalid request method.'}, status=400)
+        return Json

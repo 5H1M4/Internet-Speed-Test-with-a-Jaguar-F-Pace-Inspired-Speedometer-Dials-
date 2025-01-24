@@ -1,118 +1,57 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Internet Speed Test</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Internet Speed Test</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            
-    <img src="https://logowik.com/content/uploads/images/685_jaguar.jpg" alt="Jaguar Logo">
+  <div class="container">
+    <header class="header">
+      <h1>Internet Speed Test</h1>
+    </header>
+
+    <div class="test-panel">
+      <div class="dials">
+        <div class="dial" id="ping-dial">
+          <div class="value" id="ping-value">--</div>
+          <div class="label">Ping (ms)</div>
         </div>
-        <div class="dials">
-            <div class="dial">
-                <h3>Download Speed</h3>
-                <div class="value" id="download-value">0.00</div>
-                <div class="unit">Mbps</div>
-                <div class="needle" id="download-needle"></div>
-            </div>
-            <div class="dial">
-                <h3>Upload Speed</h3>
-                <div class="value" id="upload-value">0.00</div>
-                <div class="unit">Mbps</div>
-                <div class="needle" id="upload-needle"></div>
-            </div>
-            <div class="dial">
-                <h3>Ping</h3>
-                <div class="value" id="ping-value">0</div>
-                <div class="unit">ms</div>
-                <div class="needle" id="ping-needle"></div>
-            </div>
+        <div class="dial" id="download-dial">
+          <div class="value" id="download-value">--</div>
+          <div class="label">Download (Mbps)</div>
         </div>
-        <button class="throttle-button" onclick="startSpeedTest()">Throttle</button>
-        <div class="results-container">
-            <h2>Test Results</h2>
-            <table class="results-table">
-                <tr>
-                    <th>Max Download</th>
-                    <th>Max Upload</th>
-                    <th>Min Ping</th>
-                </tr>
-                <tr>
-                    <td id="max-download">0.00 Mbps</td>
-                    <td id="max-upload">0.00 Mbps</td>
-                    <td id="min-ping">0 ms</td>
-                </tr>
-            </table>
-            <button class="restart-button" onclick="resetAndStartSpeedTest()">Restart Test</button>
+        <div class="dial" id="upload-dial">
+          <div class="value" id="upload-value">--</div>
+          <div class="label">Upload (Mbps)</div>
         </div>
+      </div>
+
+      <div class="action">
+        <button id="start-test" class="throttle-button">Go</button>
+      </div>
     </div>
 
-    <script>
-        function startSpeedTest() {
-            fetch("{% url 'run_speedtest' %}", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateDials(data.download_speeds, data.upload_speeds, data.ping_values);
-                updateResults(data.max_download, data.max_upload, data.min_ping);
-            })
-            .catch(error => console.error('Error:', error));
-        }
+    <div class="results hidden" id="results-panel">
+      <h2>Test Results</h2>
+      <div class="result-row">
+        <span>Ping:</span>
+        <span id="result-ping">-- ms</span>
+      </div>
+      <div class="result-row">
+        <span>Download:</span>
+        <span id="result-download">-- Mbps</span>
+      </div>
+      <div class="result-row">
+        <span>Upload:</span>
+        <span id="result-upload">-- Mbps</span>
+      </div>
+      <button id="restart-test" class="restart-button">Restart Test</button>
+    </div>
+  </div>
 
-        function resetAndStartSpeedTest() {
-            resetDials();
-            startSpeedTest();
-        }
-
-        function updateDials(downloadSpeeds, uploadSpeeds, pingSpeeds) {
-            const downloadValue = document.getElementById('download-value');
-            const uploadValue = document.getElementById('upload-value');
-            const pingValue = document.getElementById('ping-value');
-            const downloadNeedle = document.getElementById('download-needle');
-            const uploadNeedle = document.getElementById('upload-needle');
-            const pingNeedle = document.getElementById('ping-needle');
-
-            downloadValue.textContent = downloadSpeeds[downloadSpeeds.length - 1].toFixed(2);
-            uploadValue.textContent = uploadSpeeds[uploadSpeeds.length - 1].toFixed(2);
-            pingValue.textContent = pingSpeeds[pingSpeeds.length - 1].toFixed(2);
-
-            animateDial(downloadNeedle, 100, downloadSpeeds[downloadSpeeds.length - 1], 0.5);
-            animateDial(uploadNeedle, 100, uploadSpeeds[uploadSpeeds.length - 1], 0.5);
-            animateDial(pingNeedle, 100, pingSpeeds[pingSpeeds.length - 1], 0.5);
-        }
-
-        function updateResults(maxDownload, maxUpload, minPing) {
-            document.getElementById('max-download').textContent = `${maxDownload.toFixed(2)} Mbps`;
-            document.getElementById('max-upload').textContent = `${maxUpload.toFixed(2)} Mbps`;
-            document.getElementById('min-ping').textContent = `${minPing.toFixed(2)} ms`;
-        }
-
-        function resetDials() {
-            document.getElementById('download-value').textContent = '0.00';
-            document.getElementById('upload-value').textContent = '0.00';
-            document.getElementById('ping-value').textContent = '0';
-            animateDial(document.getElementById('download-needle'), 100, 0, 0.5);
-            animateDial(document.getElementById('upload-needle'), 100, 0, 0.5);
-            animateDial(document.getElementById('ping-needle'), 100, 0, 0.5);
-        }
-
-        function animateDial(needle, maxValue, currentValue, duration) {
-            const angle = (currentValue / maxValue) * 135 - 45;
-            needle.style.transform = `rotate(${angle}deg)`;
-        }
-    </script>
+  <script src="{% static 'js/home.js' %}"></script>
 </body>
 </html>
